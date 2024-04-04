@@ -4,5 +4,3 @@ pandas
 scikit_learn
 plotly
 gunicorn
-urllib
-json
