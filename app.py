@@ -1,7 +1,7 @@
 # import dependencies
 import pandas as pd
 import plotly.express as px
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from dash import Dash, dcc, html, Input, Output, callback
 from urllib.request import urlopen
 import json
