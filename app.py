@@ -49,11 +49,15 @@ app.layout = html.Div([
     graph_div,
     state_dropdown_div
 ], className="row")
+
+
 @callback(Output('graph', 'figure'),
           Input('state-dropdown', 'value'))
 def update_figure(states):
     print("Callback activated")
-    filtered_df = df
+    print(type(states))
+    print(states)
+    filtered_df = df[df['State'].isin(states)]
 
     filtered_df_counts = get_counts_by_county(filtered_df)
     filtered_fig = px.choropleth(filtered_df_counts,
@@ -79,6 +83,7 @@ def update_figure(states):
     ))
     print("Got to end of callback")
     return filtered_fig
+
 
 """SERVER SPECIFIC CODE BELOW, DO NOT EDIT"""
 
