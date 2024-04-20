@@ -16,51 +16,69 @@ server = app.server
 
 """INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
-
 df = pd.read_csv('data_final.csv', dtype={'CountyFIPS':str, 'StateFIPS':str})
 
-df_counts = df['CountyFIPS'].value_counts().to_frame().reset_index()
-df_counts = df_counts.rename(columns={"count":"Number of Accidents"})
+
+def get_counts_by_county(dataframe):
+    counts = dataframe['CountyFIPS'].value_counts().to_frame().reset_index()
+    counts = counts.rename(columns={"count":"Number of Accidents"})
+    return counts
 
 
 # Load the county boundary coordinates
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
-# Build the choropleth
-fig = px.choropleth(df_counts,
-    geojson=counties,
-    locations='CountyFIPS',
-    color=np.log10(df_counts['Number of Accidents']),
-    color_continuous_scale="inferno",
-    scope="usa",
-    hover_data={'Number of Accidents':True, 'CountyFIPS':False},
-)
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-# Improve the legend
-fig.update_layout(coloraxis_colorbar=dict(
-    thicknessmode="pixels", thickness=20,
-    lenmode="pixels", len=300,
-    yanchor="top", y=0.8,
-    ticks="outside",
-    dtick=5,
-    title="Number of Accidents",
-    tickvals=[1,2,3,4,5],
-    ticktext=["10","100","1000","10k","100k"],
-))
-
 # create html div for the graph
 graph_div = html.Div([
     dcc.Graph(
-        figure=fig,
         id='graph'
     ),
 ])
 
+state_dropdown_div = html.Div([
+    dcc.Dropdown(
+        id='state-dropdown',
+        options = df['State'].unique(),
+        multi=True,
+        value=["VA", "NY", "TX", "CA"],
+    )
+])
+
 app.layout = html.Div([
-    graph_div
+    graph_div,
+    state_dropdown_div
 ], className="row")
+@callback(Output('graph', 'figure'),
+          Input('state-dropdown', 'value'))
+def update_figure(states):
+    print("Callback activated")
+    filtered_df = df
+
+    filtered_df_counts = get_counts_by_county(filtered_df)
+    filtered_fig = px.choropleth(filtered_df_counts,
+                                 geojson=counties,
+                                 locations='CountyFIPS',
+                                 color=np.log10(filtered_df_counts['Number of Accidents']),
+                                 color_continuous_scale="inferno",
+                                 scope="usa",
+                                 hover_data={'Number of Accidents': True, 'CountyFIPS': False},
+                                 )
+    filtered_fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+
+    # Improve the legend
+    filtered_fig.update_layout(coloraxis_colorbar=dict(
+        thicknessmode="pixels", thickness=20,
+        lenmode="pixels", len=300,
+        yanchor="top", y=0.8,
+        ticks="outside",
+        dtick=5,
+        title="Number of Accidents",
+        tickvals=[1, 2, 3, 4, 5],
+        ticktext=["10", "100", "1000", "10k", "100k"],
+    ))
+    print("Got to end of callback")
+    return filtered_fig
 
 """SERVER SPECIFIC CODE BELOW, DO NOT EDIT"""
 
