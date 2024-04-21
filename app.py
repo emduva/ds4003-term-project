@@ -70,17 +70,28 @@ date_slider_div = html.Div([
     )
 ])
 
+conditions_selector_div = html.Div([
+    dcc.RadioItems(
+        id='conditions-selector',
+        options=['Any', 'Amenity', 'Bump', 'Crossing', 'Give_Way', 'Junction',
+                 'No_Exit', 'Railway', 'Roundabout', 'Station', 'Stop', 'Traffic_Signal'],
+        value='Stop'
+    )
+])
+
 app.layout = html.Div([
     graph_div,
     state_dropdown_div,
     date_slider_div,
+    conditions_selector_div,
 ], className="row")
 
 
 @callback(Output('graph', 'figure'),
           Input('state-dropdown', 'value'),
-          Input('date-slider', 'value'))
-def update_figure(states, date_range):
+          Input('date-slider', 'value'),
+          Input('conditions-selector', 'value'))
+def update_figure(states, date_range, condition):
     filtered_df = df[df['State'].isin(states)]
 
     min_date_index = date_range[0]
@@ -99,6 +110,9 @@ def update_figure(states, date_range):
 
     filtered_df = filtered_df[filtered_df['timestamp'] >= min_timestamp]
     filtered_df = filtered_df[filtered_df['timestamp'] <= max_timestamp]
+
+    if not condition == 'Any':
+        filtered_df = filtered_df[filtered_df[condition]]
 
     filtered_df_counts = get_counts_by_county(filtered_df)
     filtered_fig = px.choropleth(filtered_df_counts,
