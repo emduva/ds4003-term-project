@@ -23,7 +23,13 @@ df = pd.read_csv('data_final_2.csv', dtype={'CountyFIPS':str, 'StateFIPS':str})
 
 def get_counts_by_county(dataframe):
     counts = dataframe['CountyFIPS'].value_counts().to_frame().reset_index()
-    counts = counts.rename(columns={"count":"Number of Accidents"})
+    counts = counts.rename(columns={"count": "Number of Accidents"})
+    return counts
+
+
+def get_weather_counts(dataframe):
+    counts = dataframe['Weather_Condition'].value_counts().to_frame().reset_index()
+    counts = counts.rename(columns={"count": "Number of Accidents"})
     return counts
 
 
@@ -75,7 +81,15 @@ conditions_selector_div = html.Div([
         id='conditions-selector',
         options=['Any', 'Amenity', 'Bump', 'Crossing', 'Give_Way', 'Junction',
                  'No_Exit', 'Railway', 'Roundabout', 'Station', 'Stop', 'Traffic_Signal'],
-        value='Stop'
+        value='Any'
+    )
+])
+
+"""MAP ELEMENTS ABOVE"""
+
+pie_chart_div = html.Div([
+    dcc.Graph(
+        id='pie-chart'
     )
 ])
 
@@ -84,7 +98,18 @@ app.layout = html.Div([
     state_dropdown_div,
     date_slider_div,
     conditions_selector_div,
+    pie_chart_div
 ], className="row")
+
+
+@callback(Output(component_id='pie-chart', component_property='figure'),
+          Input(component_id='date-slider', component_property='value'))
+def update_pie_chart(date_range):
+    pie_counts = get_weather_counts(df)
+    pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Weather_Condition')
+    pie_fig.update_traces(textposition='inside')
+    pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+    return pie_fig
 
 
 @callback(Output('graph', 'figure'),
