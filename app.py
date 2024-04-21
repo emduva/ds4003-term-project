@@ -15,10 +15,9 @@ stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=stylesheets)
 server = app.server
 
-
 """INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
-df = pd.read_csv('data_final_2.csv', dtype={'CountyFIPS':str, 'StateFIPS':str})
+df = pd.read_csv('data_final_2.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
 
 
 def get_counts_by_county(dataframe):
@@ -68,7 +67,6 @@ for i in range(24):
     label = f'{year}-{month}'
     date_labels_dict.update({num: label})
 
-
 date_slider_div = html.Div([
     dcc.RangeSlider(
         id='date-slider',
@@ -108,14 +106,48 @@ pie_selector = html.Div([
     )
 ])
 
+scatter_div = html.Div([
+    dcc.Graph(
+        id='scatter-plot',
+    )
+])
+
+scatter_x_selector = html.Div([
+    dcc.Dropdown(
+        id='scatter-x-selector',
+        options=['Temperature(F)', 'Visibility(mi)', 'Wind_Speed(mph)', 'Precipitation(in)'],
+        value='Temperature(F)'
+    )
+])
+
+scatter_y_selector = html.Div([
+    dcc.Dropdown(
+        id='scatter-y-selector',
+        options=['Severity', 'Distance(mi)'],
+        value='Severity'
+    )
+])
+
 app.layout = html.Div([
     graph_div,
     state_dropdown_div,
     date_slider_div,
     conditions_selector_div,
     pie_chart_div,
-    pie_selector
+    pie_selector,
+    scatter_div,
+    scatter_x_selector,
+    scatter_y_selector
 ], className="row")
+
+
+@callback(Output(component_id='scatter-plot', component_property='figure'),
+          Input(component_id='scatter-x-selector', component_property='value'),
+          Input(component_id='scatter-y-selector', component_property='value'))
+def update_scatter_plot(x_selection, y_selection):
+    scatter_fig = px.scatter(df.sample(100000), x=x_selection, y=y_selection,
+                             color='State', color_discrete_sequence=px.colors.sequential.Inferno_r)
+    return scatter_fig
 
 
 @callback(Output(component_id='pie-chart', component_property='figure'),
@@ -124,7 +156,7 @@ def update_pie_chart(selected_pie):
     if selected_pie == 'Weather':
         pie_counts = get_weather_counts(df)
         pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Weather_Condition',
-                     color_discrete_sequence=px.colors.sequential.Inferno_r)
+                         color_discrete_sequence=px.colors.sequential.Inferno_r)
         pie_fig.update_traces(textposition='inside')
         pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
         return pie_fig
@@ -192,7 +224,6 @@ def update_figure(states, date_range, condition):
 
 
 """SERVER SPECIFIC CODE BELOW, DO NOT EDIT"""
-
 
 # run app
 if __name__ == '__main__':
