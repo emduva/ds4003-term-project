@@ -33,6 +33,12 @@ def get_weather_counts(dataframe):
     return counts
 
 
+def get_daynight_counts(dataframe):
+    counts = dataframe['Sunrise_Sunset'].value_counts().to_frame().reset_index()
+    counts = counts.rename(columns={"count": "Number of Accidents"})
+    return counts
+
+
 # Load the county boundary coordinates
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
@@ -93,23 +99,43 @@ pie_chart_div = html.Div([
     )
 ])
 
+pie_selector = html.Div([
+    dcc.Dropdown(
+        id='pie-selector',
+        options=['Weather', 'DayNight'],
+        multi=False,
+        value='Weather'
+    )
+])
+
 app.layout = html.Div([
     graph_div,
     state_dropdown_div,
     date_slider_div,
     conditions_selector_div,
-    pie_chart_div
+    pie_chart_div,
+    pie_selector
 ], className="row")
 
 
 @callback(Output(component_id='pie-chart', component_property='figure'),
-          Input(component_id='date-slider', component_property='value'))
-def update_pie_chart(date_range):
-    pie_counts = get_weather_counts(df)
-    pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Weather_Condition')
-    pie_fig.update_traces(textposition='inside')
-    pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
-    return pie_fig
+          Input(component_id='pie-selector', component_property='value'))
+def update_pie_chart(selected_pie):
+    if selected_pie == 'Weather':
+        pie_counts = get_weather_counts(df)
+        pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Weather_Condition',
+                     color_discrete_sequence=px.colors.sequential.Inferno_r)
+        pie_fig.update_traces(textposition='inside')
+        pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        return pie_fig
+
+    elif selected_pie == 'DayNight':
+        pie_counts = get_daynight_counts(df)
+        pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Sunrise_Sunset',
+                         color_discrete_sequence=px.colors.sequential.Inferno_r)
+        pie_fig.update_traces(textposition='inside')
+        pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        return pie_fig
 
 
 @callback(Output('graph', 'figure'),
