@@ -1,7 +1,6 @@
 # import dependencies
 import pandas as pd
 import plotly.express as px
-#import matplotlib.pyplot as plt
 from dash import Dash, dcc, html, Input, Output, callback
 from urllib.request import urlopen
 import requests
@@ -9,6 +8,7 @@ import json
 import numpy as np
 import datetime
 import time
+import io
 
 # load the CSS stylesheet
 stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -16,26 +16,14 @@ stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=stylesheets)
 server = app.server
 
-"""INITIALIZATION CODE ABOVE, DO NOT EDIT"""
-
-"""
-with urlopen('https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv') as response:
-    file = response.read()
-    df = pd.read_csv(file, dtype={'CountyFIPS': str, 'StateFIPS': str})
-
-
-df = pd.read_csv('https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv',
-                 dtype={'CountyFIPS': str, 'StateFIPS': str})
-
-"""
+# df = pd.read_csv('data_final_3.csv', dtype={'CountyFIPS': str, 'StateFIPS': str}) # for local testing
 
 url = 'https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv'
-response = requests.get(url)
+csv_data = io.StringIO(requests.get(url).content.decode('utf-8'))
+df = pd.read_csv(csv_data, dtype={'CountyFIPS': str, 'StateFIPS': str})
 
-with open("data_temp.csv", mode='wb') as file:
-    file.write(response.content)
+"""INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
-df = pd.read_csv('data_temp.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
 
 def get_counts_by_county(dataframe):
     counts = dataframe['CountyFIPS'].value_counts().to_frame().reset_index()
