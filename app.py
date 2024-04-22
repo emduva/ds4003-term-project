@@ -16,11 +16,7 @@ stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=stylesheets)
 server = app.server
 
-# df = pd.read_csv('data_final_3.csv', dtype={'CountyFIPS': str, 'StateFIPS': str}) # for local testing
-
-url = 'https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv'
-csv_data = io.StringIO(requests.get(url).content.decode('utf-8'))
-df = pd.read_csv(csv_data, dtype={'CountyFIPS': str, 'StateFIPS': str})
+df = pd.read_csv('data_truncated.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
 
 """INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
