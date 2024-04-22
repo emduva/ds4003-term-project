@@ -9,5 +9,5 @@ This dashboard visualizes traffic accidents occurring in the United States from 
 The hosted version of the dashboard uses a subset of the full dataset, since the full version is too big to use; the full version can be found at the following Google cloud storage link:
 https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv
 
-The dataset is a modified version of an original dataset, which can be found here:
+The original dataset is also too large to put in the repository; it can be found here:
 https://www.kaggle.com/datasets/sobhanmoosavi/us-accidents
