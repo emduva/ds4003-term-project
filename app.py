@@ -17,7 +17,8 @@ server = app.server
 
 """INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
-df = pd.read_csv('data_final_2.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
+df = pd.read_csv('https://media.githubusercontent.com/media/emduva/ds4003-term-project/main/data_final_3.csv',
+                 dtype={'CountyFIPS': str, 'StateFIPS': str})
 
 
 def get_counts_by_county(dataframe):
