@@ -3,12 +3,10 @@ import pandas as pd
 import plotly.express as px
 from dash import Dash, dcc, html, Input, Output, callback
 from urllib.request import urlopen
-import requests
 import json
 import numpy as np
 import datetime
 import time
-import io
 
 # load the CSS stylesheet
 stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
