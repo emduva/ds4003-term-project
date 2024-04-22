@@ -14,7 +14,7 @@ stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=stylesheets)
 server = app.server
 
-df = pd.read_csv('data_truncated.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
+df = pd.read_csv('clean_data.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
 
 """INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
