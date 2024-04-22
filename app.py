@@ -45,7 +45,8 @@ with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-c
 # create html div for the graph
 graph_div = html.Div([
     dcc.Graph(
-        id='graph'
+        id='graph',
+        style={'height': '60vh'}
     ),
 ])
 
@@ -93,7 +94,7 @@ conditions_selector_div = html.Div([
 
 pie_chart_div = html.Div([
     dcc.Graph(
-        id='pie-chart'
+        id='pie-chart',
     )
 ])
 
@@ -128,6 +129,35 @@ scatter_y_selector = html.Div([
     )
 ])
 
+buff_height = 20
+vert_buff = html.Div(style={'marginBottom': buff_height, 'marginTop': buff_height})
+
+layout = html.Div([
+    html.Div([
+        html.Div([
+            conditions_selector_div,
+        ], className='one column'),
+        html.Div([
+            graph_div,
+            state_dropdown_div,
+            date_slider_div,
+        ], className='seven columns'),
+        html.Div([
+            html.Div([
+                pie_chart_div,
+                pie_selector,
+            ], style={'border': '2px solid black', 'padding': '5px'}),
+            vert_buff,
+            html.Div([
+                scatter_div,
+                scatter_x_selector,
+                scatter_y_selector,
+            ], style={'border': '2px solid black', 'padding': '5px'}),
+        ], className='four columns'),
+    ], className='row'),
+], className='row')
+
+"""
 app.layout = html.Div([
     graph_div,
     state_dropdown_div,
@@ -139,6 +169,8 @@ app.layout = html.Div([
     scatter_x_selector,
     scatter_y_selector
 ], className="row")
+"""
+app.layout = layout
 
 
 @callback(Output(component_id='scatter-plot', component_property='figure'),
