@@ -4,6 +4,7 @@ import plotly.express as px
 #import matplotlib.pyplot as plt
 from dash import Dash, dcc, html, Input, Output, callback
 from urllib.request import urlopen
+import requests
 import json
 import numpy as np
 import datetime
@@ -17,9 +18,24 @@ server = app.server
 
 """INITIALIZATION CODE ABOVE, DO NOT EDIT"""
 
-df = pd.read_csv('https://media.githubusercontent.com/media/emduva/ds4003-term-project/main/data_final_3.csv',
+"""
+with urlopen('https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv') as response:
+    file = response.read()
+    df = pd.read_csv(file, dtype={'CountyFIPS': str, 'StateFIPS': str})
+
+
+df = pd.read_csv('https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv',
                  dtype={'CountyFIPS': str, 'StateFIPS': str})
 
+"""
+
+url = 'https://storage.googleapis.com/ds4003-accident-data/data_final_3.csv'
+response = requests.get(url)
+
+with open("data_temp.csv", mode='wb') as file:
+    file.write(response.content)
+
+df = pd.read_csv('data_temp.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
 
 def get_counts_by_county(dataframe):
     counts = dataframe['CountyFIPS'].value_counts().to_frame().reset_index()
