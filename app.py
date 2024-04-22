@@ -25,6 +25,12 @@ def get_counts_by_county(dataframe):
     return counts
 
 
+def get_counts_by_state(dataframe):
+    counts = dataframe['State'].value_counts().to_frame().reset_index()
+    counts = counts.rename(columns={"count": "Number of Accidents"})
+    return counts
+
+
 def get_weather_counts(dataframe):
     counts = dataframe['Weather_Condition'].value_counts().to_frame().reset_index()
     counts = counts.rename(columns={"count": "Number of Accidents"})
@@ -41,7 +47,7 @@ def get_daynight_counts(dataframe):
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
-# create html div for the graph
+# create html div for the choropleth
 graph_div = html.Div([
     dcc.Graph(
         id='graph',
@@ -49,6 +55,15 @@ graph_div = html.Div([
     ),
 ])
 
+map_selector_div = html.Div([
+    dcc.Dropdown(
+        id='map-selector',
+        options=['States', 'Counties'],
+        value='Counties'
+    )
+])
+
+# state filter dropdown
 state_dropdown_div = html.Div([
     dcc.Dropdown(
         id='state-dropdown',
@@ -85,7 +100,8 @@ conditions_selector_div = html.Div([
         id='conditions-selector',
         options=['Any', 'Amenity', 'Bump', 'Crossing', 'Give_Way', 'Junction',
                  'No_Exit', 'Railway', 'Roundabout', 'Station', 'Stop', 'Traffic_Signal'],
-        value='Any'
+        value='Any',
+        inline=True,
     )
 ])
 
@@ -134,13 +150,20 @@ vert_buff = html.Div(style={'marginBottom': buff_height, 'marginTop': buff_heigh
 layout = html.Div([
     html.Div([
         html.Div([
-            conditions_selector_div,
-        ], className='one column'),
-        html.Div([
-            graph_div,
-            state_dropdown_div,
+            html.Div([
+                html.Div([
+                    state_dropdown_div,
+                ], className='six columns'),
+                html.Div([
+                    conditions_selector_div,
+                ], className='two columns'),
+            ], className='row'),
             date_slider_div,
-        ], className='seven columns'),
+            html.Div([
+                graph_div,
+                map_selector_div,
+            ], style={'border': '2px solid black', 'padding': '5px'}),
+        ], className='eight columns'),
         html.Div([
             html.Div([
                 pie_chart_div,
@@ -204,8 +227,9 @@ def update_pie_chart(selected_pie):
 @callback(Output('graph', 'figure'),
           Input('state-dropdown', 'value'),
           Input('date-slider', 'value'),
-          Input('conditions-selector', 'value'))
-def update_figure(states, date_range, condition):
+          Input('conditions-selector', 'value'),
+          Input('map-selector', 'value'))
+def update_figure(states, date_range, condition, map_type):
     filtered_df = df[df['State'].isin(states)]
 
     min_date_index = date_range[0]
@@ -228,28 +252,54 @@ def update_figure(states, date_range, condition):
     if not condition == 'Any':
         filtered_df = filtered_df[filtered_df[condition]]
 
-    filtered_df_counts = get_counts_by_county(filtered_df)
-    filtered_fig = px.choropleth(filtered_df_counts,
-                                 geojson=counties,
-                                 locations='CountyFIPS',
-                                 color=np.log10(filtered_df_counts['Number of Accidents']),
-                                 color_continuous_scale="inferno",
-                                 scope="usa",
-                                 hover_data={'Number of Accidents': True, 'CountyFIPS': False},
-                                 )
-    filtered_fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+    if map_type == 'Counties':
+        filtered_df_counts = get_counts_by_county(filtered_df)
+        filtered_fig = px.choropleth(filtered_df_counts,
+                                     geojson=counties,
+                                     locations='CountyFIPS',
+                                     color=np.log10(filtered_df_counts['Number of Accidents']),
+                                     color_continuous_scale="inferno",
+                                     scope="usa",
+                                     hover_data={'Number of Accidents': True, 'CountyFIPS': False},
+                                     )
+        filtered_fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
-    # Improve the legend
-    filtered_fig.update_layout(coloraxis_colorbar=dict(
-        thicknessmode="pixels", thickness=20,
-        lenmode="pixels", len=300,
-        yanchor="top", y=0.8,
-        ticks="outside",
-        dtick=5,
-        title="Number of Accidents",
-        tickvals=[1, 2, 3, 4, 5],
-        ticktext=["10", "100", "1000", "10k", "100k"],
-    ))
+        # Improve the legend
+        filtered_fig.update_layout(coloraxis_colorbar=dict(
+            thicknessmode="pixels", thickness=20,
+            lenmode="pixels", len=300,
+            yanchor="top", y=0.8,
+            ticks="outside",
+            dtick=5,
+            title="Number of Accidents",
+            tickvals=[1, 2, 3, 4, 5],
+            ticktext=["10", "100", "1000", "10k", "100k"],
+        ))
+
+    else:
+        filtered_df_counts = get_counts_by_state(filtered_df)
+        filtered_fig = px.choropleth(filtered_df_counts,
+                                     locationmode='USA-states',
+                                     locations='State',
+                                     color=np.log10(filtered_df_counts['Number of Accidents']),
+                                     color_continuous_scale="inferno",
+                                     scope="usa",
+                                     hover_data={'Number of Accidents': True, 'State': False},
+                                     )
+        filtered_fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+
+        # Improve the legend
+        filtered_fig.update_layout(coloraxis_colorbar=dict(
+            thicknessmode="pixels", thickness=20,
+            lenmode="pixels", len=300,
+            yanchor="top", y=0.8,
+            ticks="outside",
+            dtick=5,
+            title="Number of Accidents",
+            tickvals=[1, 2, 3, 4, 5],
+            ticktext=["10", "100", "1000", "10k", "100k"],
+        ))
+
     print("end of callback")
     return filtered_fig
 
