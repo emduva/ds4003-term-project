@@ -2,6 +2,7 @@
 import pandas as pd
 import plotly.express as px
 from dash import Dash, dcc, html, Input, Output, callback
+import dash_bootstrap_components as dbc
 from urllib.request import urlopen
 import json
 import numpy as np
@@ -9,7 +10,7 @@ import datetime
 import time
 
 # load the CSS stylesheet
-stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', dbc.themes.MINTY]
 # initialize the app
 app = Dash(__name__, external_stylesheets=stylesheets)
 server = app.server
@@ -43,12 +44,24 @@ def get_daynight_counts(dataframe):
     return counts
 
 
+def get_state_counts(dataframe):
+    counts = dataframe['State'].value_counts().to_frame().reset_index()
+    counts = counts.rename(columns={"count": "Number of Accidents"})
+    return counts
+
+
+def get_severity_counts(dataframe):
+    counts = dataframe['Severity'].value_counts().to_frame().reset_index()
+    counts = counts.rename(columns={"count": "Number of Accidents"})
+    return counts
+
+
 # Load the county boundary coordinates
 with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json') as response:
     counties = json.load(response)
 
 # create html div for the choropleth
-graph_div = html.Div([
+map_div = html.Div([
     dcc.Graph(
         id='graph',
         style={'height': '60vh'}
@@ -61,7 +74,7 @@ map_selector_div = html.Div([
         options=['States', 'Counties'],
         value='Counties'
     )
-])
+], style={'font-size': '16px'})
 
 # state filter dropdown
 state_dropdown_div = html.Div([
@@ -103,7 +116,7 @@ conditions_selector_div = html.Div([
         value='Any',
         inline=True,
     )
-])
+], style={'font-size': '16px'})
 
 """MAP ELEMENTS ABOVE"""
 
@@ -116,11 +129,11 @@ pie_chart_div = html.Div([
 pie_selector = html.Div([
     dcc.Dropdown(
         id='pie-selector',
-        options=['Weather', 'DayNight'],
+        options=['Weather', 'DayNight', 'State', 'Severity'],
         multi=False,
         value='Weather'
     )
-])
+], style={'font-size': '16px'})
 
 scatter_div = html.Div([
     dcc.Graph(
@@ -134,7 +147,7 @@ scatter_x_selector = html.Div([
         options=['Temperature(F)', 'Visibility(mi)', 'Wind_Speed(mph)', 'Precipitation(in)'],
         value='Temperature(F)'
     )
-])
+], style={'font-size': '16px'})
 
 scatter_y_selector = html.Div([
     dcc.Dropdown(
@@ -142,14 +155,24 @@ scatter_y_selector = html.Div([
         options=['Severity', 'Distance(mi)'],
         value='Severity'
     )
-])
+], style={'font-size': '16px'})
 
 buff_height = 20
 vert_buff = html.Div(style={'marginBottom': buff_height, 'marginTop': buff_height})
 
-layout = html.Div([
+"""APP LAYOUT BELOW"""
+
+info_text = 'Global Options: The following options apply to all three visualizations.'
+
+app.layout = html.Div([
+    html.Div([
+        html.Nav(html.Span('US Traffic Accident Data, 2016-2023'), style={'color': 'white', 'font-size': '45px'},
+                 className='navbar-nav-style bg-dark'),
+    ]),
+    html.Div(style={'marginBottom': buff_height, 'marginTop': buff_height},),
     html.Div([
         html.Div([
+            html.H3(info_text),
             html.Div([
                 html.Div([
                     state_dropdown_div,
@@ -160,9 +183,10 @@ layout = html.Div([
             ], className='row'),
             date_slider_div,
             html.Div([
-                graph_div,
+                html.H3('Number of Accidents by Locality'),
+                map_div,
                 map_selector_div,
-            ], style={'border': '2px solid black', 'padding': '5px'}),
+            ], style={'border': '2px solid black', 'padding': '5px', 'margin': '10px'}),
         ], className='eight columns'),
         html.Div([
             html.Div([
@@ -179,36 +203,30 @@ layout = html.Div([
     ], className='row'),
 ], className='row')
 
-"""
-app.layout = html.Div([
-    graph_div,
-    state_dropdown_div,
-    date_slider_div,
-    conditions_selector_div,
-    pie_chart_div,
-    pie_selector,
-    scatter_div,
-    scatter_x_selector,
-    scatter_y_selector
-], className="row")
-"""
-app.layout = layout
-
 
 @callback(Output(component_id='scatter-plot', component_property='figure'),
           Input(component_id='scatter-x-selector', component_property='value'),
-          Input(component_id='scatter-y-selector', component_property='value'))
-def update_scatter_plot(x_selection, y_selection):
-    scatter_fig = px.scatter(df.sample(100000), x=x_selection, y=y_selection,
+          Input(component_id='scatter-y-selector', component_property='value'),
+          Input('state-dropdown', 'value'),
+          Input('date-slider', 'value'),
+          Input('conditions-selector', 'value'))
+def update_scatter_plot(x_selection, y_selection, states, date_range, condition):
+    filtered_df = filter_dataframe(condition, date_range, states)
+    scatter_fig = px.scatter(filtered_df, x=x_selection, y=y_selection,
                              color='State', color_discrete_sequence=px.colors.sequential.Inferno_r)
     return scatter_fig
 
 
 @callback(Output(component_id='pie-chart', component_property='figure'),
-          Input(component_id='pie-selector', component_property='value'))
-def update_pie_chart(selected_pie):
+          Input(component_id='pie-selector', component_property='value'),
+          Input('state-dropdown', 'value'),
+          Input('date-slider', 'value'),
+          Input('conditions-selector', 'value'))
+def update_pie_chart(selected_pie, states, date_range, condition):
+    filtered_df = filter_dataframe(condition, date_range, states)
+
     if selected_pie == 'Weather':
-        pie_counts = get_weather_counts(df)
+        pie_counts = get_weather_counts(filtered_df)
         pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Weather_Condition',
                          color_discrete_sequence=px.colors.sequential.Inferno_r)
         pie_fig.update_traces(textposition='inside')
@@ -216,8 +234,24 @@ def update_pie_chart(selected_pie):
         return pie_fig
 
     elif selected_pie == 'DayNight':
-        pie_counts = get_daynight_counts(df)
+        pie_counts = get_daynight_counts(filtered_df)
         pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Sunrise_Sunset',
+                         color_discrete_sequence=px.colors.sequential.Inferno_r)
+        pie_fig.update_traces(textposition='inside')
+        pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        return pie_fig
+
+    elif selected_pie == 'State':
+        pie_counts = get_state_counts(filtered_df)
+        pie_fig = px.pie(pie_counts, values='Number of Accidents', names='State',
+                         color_discrete_sequence=px.colors.sequential.Inferno_r)
+        pie_fig.update_traces(textposition='inside')
+        pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        return pie_fig
+
+    elif selected_pie == 'Severity':
+        pie_counts = get_severity_counts(filtered_df)
+        pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Severity',
                          color_discrete_sequence=px.colors.sequential.Inferno_r)
         pie_fig.update_traces(textposition='inside')
         pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
@@ -229,28 +263,8 @@ def update_pie_chart(selected_pie):
           Input('date-slider', 'value'),
           Input('conditions-selector', 'value'),
           Input('map-selector', 'value'))
-def update_figure(states, date_range, condition, map_type):
-    filtered_df = df[df['State'].isin(states)]
-
-    min_date_index = date_range[0]
-    max_date_index = date_range[1]
-
-    min_month = (min_date_index % 12) + 1
-    min_year_index = min_date_index // 12
-    min_year = 2016 + min_year_index
-
-    max_month = (max_date_index % 12) + 1
-    max_year_index = max_date_index // 12
-    max_year = 2016 + max_year_index
-
-    min_timestamp = int(time.mktime(datetime.datetime(min_year, min_month, 1).timetuple()))
-    max_timestamp = int(time.mktime(datetime.datetime(max_year, max_month, 1).timetuple()))
-
-    filtered_df = filtered_df[filtered_df['timestamp'] >= min_timestamp]
-    filtered_df = filtered_df[filtered_df['timestamp'] <= max_timestamp]
-
-    if not condition == 'Any':
-        filtered_df = filtered_df[filtered_df[condition]]
+def update_map(states, date_range, condition, map_type):
+    filtered_df = filter_dataframe(condition, date_range, states)
 
     if map_type == 'Counties':
         filtered_df_counts = get_counts_by_county(filtered_df)
@@ -302,6 +316,25 @@ def update_figure(states, date_range, condition, map_type):
 
     print("end of callback")
     return filtered_fig
+
+
+def filter_dataframe(condition, date_range, states):
+    filtered_df = df[df['State'].isin(states)]
+    min_date_index = date_range[0]
+    max_date_index = date_range[1]
+    min_month = (min_date_index % 12) + 1
+    min_year_index = min_date_index // 12
+    min_year = 2016 + min_year_index
+    max_month = (max_date_index % 12) + 1
+    max_year_index = max_date_index // 12
+    max_year = 2016 + max_year_index
+    min_timestamp = int(time.mktime(datetime.datetime(min_year, min_month, 1).timetuple()))
+    max_timestamp = int(time.mktime(datetime.datetime(max_year, max_month, 1).timetuple()))
+    filtered_df = filtered_df[filtered_df['timestamp'] >= min_timestamp]
+    filtered_df = filtered_df[filtered_df['timestamp'] <= max_timestamp]
+    if not condition == 'Any':
+        filtered_df = filtered_df[filtered_df[condition]]
+    return filtered_df
 
 
 """SERVER SPECIFIC CODE BELOW, DO NOT EDIT"""
