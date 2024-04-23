@@ -85,7 +85,7 @@ state_dropdown_div = html.Div([
         multi=True,
         value=df['State'].unique(),
     )
-])
+], style={'font-size': '18px'})
 
 date_labels_dict = dict()
 for i in range(24):
@@ -189,17 +189,22 @@ app.layout = html.Div([
             html.Div([
                 html.H3('Number of Accidents by Locality'),
                 map_div,
+                html.H4('Select Map Division Level:'),
                 map_selector_div,
             ], style={'border': '2px solid black', 'padding': '5px', 'margin': '10px'}),
         ], className='eight columns'),
         html.Div([
             html.Div([
+                html.H3('Accident Breakdown'),
                 pie_chart_div,
+                html.H4('Select Breakdown Type:'),
                 pie_selector,
             ], style={'border': '2px solid black', 'padding': '5px'}),
             vert_buff,
             html.Div([
+                html.H3('Accident Severity Based on Weather Conditions'),
                 scatter_div,
+                html.H4('Select Axes:'),
                 scatter_x_selector,
                 scatter_y_selector,
             ], style={'border': '2px solid black', 'padding': '5px'}),
