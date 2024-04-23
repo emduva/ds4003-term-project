@@ -193,8 +193,9 @@ app.layout = html.Div([
                     conditions_selector_div,
                 ], className='four columns'),
             ], className='row'),
-            html.Div(style={'marginBottom': 10, 'marginTop': 10}),
+            html.Div(style={'marginBottom': 15, 'marginTop': 15}),
             date_slider_div,
+            html.Div(style={'marginBottom': 15, 'marginTop': 15}),
             html.Div([
                 html.H3('Number of Accidents by Locality'),
                 map_div,
