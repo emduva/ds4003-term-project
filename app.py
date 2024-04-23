@@ -187,10 +187,11 @@ app.layout = html.Div([
             html.Div([
                 html.Div([
                     state_dropdown_div,
-                ], className='six columns'),
+                ], className='eight columns'),
                 html.Div([
+                    html.H4('Choose to view only accidents where a certain road feature is present:'),
                     conditions_selector_div,
-                ], className='two columns'),
+                ], className='four columns'),
             ], className='row'),
             html.Div(style={'marginBottom': 10, 'marginTop': 10}),
             date_slider_div,
