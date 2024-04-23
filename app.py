@@ -17,9 +17,10 @@ server = app.server
 
 df = pd.read_csv('data/clean_data.csv', dtype={'CountyFIPS': str, 'StateFIPS': str})
 
-"""INITIALIZATION CODE ABOVE, DO NOT EDIT"""
+"""INITIALIZATION CODE ABOVE"""
 
 
+# helper methods to get accident counts under various conditions
 def get_counts_by_county(dataframe):
     counts = dataframe['CountyFIPS'].value_counts().to_frame().reset_index()
     counts = counts.rename(columns={"count": "Number of Accidents"})
@@ -68,6 +69,7 @@ map_div = html.Div([
     ),
 ])
 
+# div for selecting map type, states or counties
 map_selector_div = html.Div([
     dcc.Dropdown(
         id='map-selector',
@@ -77,7 +79,7 @@ map_selector_div = html.Div([
     )
 ], style={'font-size': '16px'})
 
-# state filter dropdown
+# dropdown for choosing which states to visualize
 state_dropdown_div = html.Div([
     dcc.Dropdown(
         id='state-dropdown',
@@ -87,6 +89,7 @@ state_dropdown_div = html.Div([
     )
 ], style={'font-size': '18px', 'margin-left': '10px'})
 
+# slider to adjust date range of visualized data
 date_labels_dict = dict()
 for i in range(24):
     num = i * 4
@@ -109,6 +112,7 @@ date_slider_div = html.Div([
     )
 ])
 
+# radio to select which road conditions to view accidents for
 conditions_selector_div = html.Div([
     dcc.RadioItems(
         id='conditions-selector',
@@ -119,14 +123,14 @@ conditions_selector_div = html.Div([
     )
 ], style={'font-size': '18px'})
 
-"""MAP ELEMENTS ABOVE"""
-
+# div for pie chart showing accident breakdown
 pie_chart_div = html.Div([
     dcc.Graph(
         id='pie-chart',
     )
 ])
 
+# div for selector for type of pie chart visualization
 pie_selector = html.Div([
     dcc.Dropdown(
         id='pie-selector',
@@ -137,12 +141,14 @@ pie_selector = html.Div([
     )
 ], style={'font-size': '16px'})
 
+# div for scatter plot
 scatter_div = html.Div([
     dcc.Graph(
         id='scatter-plot',
     )
 ])
 
+# scatter plot x-axis selector
 scatter_x_selector = html.Div([
     dcc.Dropdown(
         id='scatter-x-selector',
@@ -152,6 +158,7 @@ scatter_x_selector = html.Div([
     )
 ], style={'font-size': '16px'})
 
+# scatter plot y-axis selector
 scatter_y_selector = html.Div([
     dcc.Dropdown(
         id='scatter-y-selector',
@@ -359,7 +366,7 @@ def filter_dataframe(condition, date_range, states):
     return filtered_df
 
 
-"""SERVER SPECIFIC CODE BELOW, DO NOT EDIT"""
+"""SERVER CODE BELOW"""
 
 # run app
 if __name__ == '__main__':
