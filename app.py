@@ -85,7 +85,7 @@ state_dropdown_div = html.Div([
         multi=True,
         value=df['State'].unique(),
     )
-], style={'font-size': '18px'})
+], style={'font-size': '18px', 'margin-left': '10px'})
 
 date_labels_dict = dict()
 for i in range(24):
@@ -117,7 +117,7 @@ conditions_selector_div = html.Div([
         value='Any',
         inline=True,
     )
-], style={'font-size': '16px'})
+], style={'font-size': '18px'})
 
 """MAP ELEMENTS ABOVE"""
 
@@ -167,16 +167,23 @@ vert_buff = html.Div(style={'marginBottom': buff_height, 'marginTop': buff_heigh
 """APP LAYOUT BELOW"""
 
 info_text = 'Global Options: The following options apply to all three visualizations.'
+description_text = '''This dashboard visualizes traffic accidents occurring in the United States from 2016-2023.
+    The intended use for this dashboard is to explore how factors like location, time of day, weather,
+    and road features can affect the frequency and severity of accidents.'''
 
 app.layout = html.Div([
     html.Div([
-        html.Nav(html.Span('US Traffic Accident Data, 2016-2023'), style={'color': 'white', 'font-size': '45px'},
-                 className='navbar-nav-style bg-dark'),
+        html.Nav(html.Span('US Traffic Accident Data, 2016-2023', style={'margin-left': '10px'}),
+                 style={'color': 'white', 'font-size': '45px'},
+                 className='navbar-nav-style bg-dark')
     ]),
-    html.Div(style={'marginBottom': buff_height, 'marginTop': buff_height},),
+    html.Div(style={'marginBottom': 10, 'marginTop': 10}),
     html.Div([
         html.Div([
-            html.H3(info_text),
+            html.H2(description_text, style={'margin-left': '10px'}),
+            html.Div(style={'marginBottom': 10, 'marginTop': 10}),
+            html.H3(info_text, style={'margin-left': '10px'}),
+
             html.Div([
                 html.Div([
                     state_dropdown_div,
@@ -185,6 +192,7 @@ app.layout = html.Div([
                     conditions_selector_div,
                 ], className='two columns'),
             ], className='row'),
+            html.Div(style={'marginBottom': 10, 'marginTop': 10}),
             date_slider_div,
             html.Div([
                 html.H3('Number of Accidents by Locality'),
