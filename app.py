@@ -130,7 +130,7 @@ pie_chart_div = html.Div([
 pie_selector = html.Div([
     dcc.Dropdown(
         id='pie-selector',
-        options=['Weather', 'DayNight', 'State', 'Severity'],
+        options=['Weather', 'Day/Night', 'State', 'Severity'],
         multi=False,
         value='Weather',
         clearable=False,
@@ -155,8 +155,8 @@ scatter_x_selector = html.Div([
 scatter_y_selector = html.Div([
     dcc.Dropdown(
         id='scatter-y-selector',
-        options=['Severity', 'Distance(mi)'],
-        value='Severity',
+        options=['Accident Severity(1-4)', 'Distance Affected(mi)'],
+        value='Accident Severity(1-4)',
         clearable=False,
     )
 ], style={'font-size': '16px'})
@@ -229,8 +229,12 @@ app.layout = html.Div([
           Input('conditions-selector', 'value'))
 def update_scatter_plot(x_selection, y_selection, states, date_range, condition):
     filtered_df = filter_dataframe(condition, date_range, states)
-    scatter_fig = px.scatter(filtered_df, x=x_selection, y=y_selection,
-                             color='State', color_discrete_sequence=px.colors.sequential.Inferno_r)
+    if y_selection == 'Distance Affected(mi)':
+        scatter_fig = px.scatter(filtered_df, x=x_selection, y='Distance(mi)',
+                                 color='State', color_discrete_sequence=px.colors.sequential.Inferno_r)
+    else:
+        scatter_fig = px.scatter(filtered_df, x=x_selection, y='Severity',
+                                 color='State', color_discrete_sequence=px.colors.sequential.Inferno_r)
     return scatter_fig
 
 
@@ -250,7 +254,7 @@ def update_pie_chart(selected_pie, states, date_range, condition):
         pie_fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
         return pie_fig
 
-    elif selected_pie == 'DayNight':
+    elif selected_pie == 'Day/Night':
         pie_counts = get_daynight_counts(filtered_df)
         pie_fig = px.pie(pie_counts, values='Number of Accidents', names='Sunrise_Sunset',
                          color_discrete_sequence=px.colors.sequential.Inferno_r)
