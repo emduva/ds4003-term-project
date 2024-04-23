@@ -72,7 +72,8 @@ map_selector_div = html.Div([
     dcc.Dropdown(
         id='map-selector',
         options=['States', 'Counties'],
-        value='Counties'
+        value='Counties',
+        clearable=False,
     )
 ], style={'font-size': '16px'})
 
@@ -131,7 +132,8 @@ pie_selector = html.Div([
         id='pie-selector',
         options=['Weather', 'DayNight', 'State', 'Severity'],
         multi=False,
-        value='Weather'
+        value='Weather',
+        clearable=False,
     )
 ], style={'font-size': '16px'})
 
@@ -145,7 +147,8 @@ scatter_x_selector = html.Div([
     dcc.Dropdown(
         id='scatter-x-selector',
         options=['Temperature(F)', 'Visibility(mi)', 'Wind_Speed(mph)', 'Precipitation(in)'],
-        value='Temperature(F)'
+        value='Temperature(F)',
+        clearable=False,
     )
 ], style={'font-size': '16px'})
 
@@ -153,7 +156,8 @@ scatter_y_selector = html.Div([
     dcc.Dropdown(
         id='scatter-y-selector',
         options=['Severity', 'Distance(mi)'],
-        value='Severity'
+        value='Severity',
+        clearable=False,
     )
 ], style={'font-size': '16px'})
 
