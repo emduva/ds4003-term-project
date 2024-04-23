@@ -323,7 +323,6 @@ def update_map(states, date_range, condition, map_type):
             ticktext=["10", "100", "1000", "10k", "100k"],
         ))
 
-    print("end of callback")
     return filtered_fig
 
 
